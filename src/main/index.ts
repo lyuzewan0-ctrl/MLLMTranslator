@@ -25,6 +25,7 @@ import {
   findLanguage,
 } from "./languages"
 import { translateScreenshot, parseMath } from "./api"
+import { syncLinuxAutoStart } from "./autostart"
 import {
   initScreenshotModule,
   startSelection,
@@ -117,6 +118,50 @@ function loadRenderer(win: BrowserWindow, page: string): void {
 function showNotification(title: string, body: string, silent = false): void {
   if (!Notification.isSupported()) return
   new Notification({ title, body, silent }).show()
+}
+
+function settingsForRenderer() {
+  return {
+    ...getSettings(),
+    autoStartSupported: IS_LINUX,
+  }
+}
+
+async function applySettingsChange(
+  change: () => ReturnType<typeof getSettings>,
+) {
+  const previous = getSettings()
+  const result = change()
+
+  if (previous.autoStart !== result.autoStart) {
+    try {
+      await syncLinuxAutoStart(result.autoStart)
+    } catch (error: unknown) {
+      setSettings(previous)
+      await syncLinuxAutoStart(previous.autoStart).catch((rollbackError: unknown) => {
+        console.error(
+          "[autostart] failed to restore previous state:",
+          errorMessage(rollbackError),
+        )
+      })
+      throw new Error(`设置 Linux 开机自启动失败：${errorMessage(error)}`)
+    }
+  }
+
+  registerShortcuts()
+  updateTrayMenu()
+  updateStatusBadge()
+  return settingsForRenderer()
+}
+
+let settingsChangeQueue = Promise.resolve()
+
+function queueSettingsChange(
+  change: () => ReturnType<typeof getSettings>,
+) {
+  const task = settingsChangeQueue.then(() => applySettingsChange(change))
+  settingsChangeQueue = task.then(() => undefined, () => undefined)
+  return task
 }
 
 function errorMessage(error: unknown): string {
@@ -762,23 +807,15 @@ function setupIpc() {
 
   ipcMain.handle("settings:get", (event) => {
     assertWindowSender(event.sender, settingsWindow)
-    return getSettings()
+    return settingsForRenderer()
   })
-  ipcMain.handle("settings:set", (event, patch: unknown) => {
+  ipcMain.handle("settings:set", async (event, patch: unknown) => {
     assertWindowSender(event.sender, settingsWindow)
-    const result = setSettings(patch)
-    registerShortcuts()
-    updateTrayMenu()
-    updateStatusBadge()
-    return result
+    return queueSettingsChange(() => setSettings(patch))
   })
-  ipcMain.handle("settings:reset", (event) => {
+  ipcMain.handle("settings:reset", async (event) => {
     assertWindowSender(event.sender, settingsWindow)
-    const result = resetSettings()
-    registerShortcuts()
-    updateTrayMenu()
-    updateStatusBadge()
-    return result
+    return queueSettingsChange(() => resetSettings())
   })
 
   ipcMain.on("open-external", (event) => {
@@ -794,7 +831,13 @@ function setupIpc() {
   })
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  try {
+    await syncLinuxAutoStart(getSettings().autoStart)
+  } catch (error: unknown) {
+    console.error("[autostart] failed to synchronize:", errorMessage(error))
+  }
+
   tray = new Tray(makeTrayIcon())
   setupIpc()
   updateTrayMenu()

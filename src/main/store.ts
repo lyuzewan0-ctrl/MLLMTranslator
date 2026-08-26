@@ -32,6 +32,7 @@ export interface Settings {
   goApiKey: string
   model: string
   endpoint: string
+  autoStart: boolean
   sourceLanguages: LanguageDef[]
   targetLanguages: LanguageDef[]
   currentSourceId: string
@@ -44,6 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
   goApiKey: "",
   model: "minimax-m3",
   endpoint: "",
+  autoStart: false,
   sourceLanguages: BUILTIN_SOURCE_LANGUAGES,
   targetLanguages: BUILTIN_TARGET_LANGUAGES,
   currentSourceId: "auto",
@@ -114,6 +116,7 @@ function normalizeSettings(value: unknown): Settings {
     goApiKey: stringValue(data.goApiKey, DEFAULT_SETTINGS.goApiKey),
     model: stringValue(data.model, DEFAULT_SETTINGS.model, true),
     endpoint: stringValue(data.endpoint, DEFAULT_SETTINGS.endpoint),
+    autoStart: data.autoStart === true,
     sourceLanguages,
     targetLanguages,
     currentSourceId: sourceLanguages.some(({ id }) => id === requestedSourceId)

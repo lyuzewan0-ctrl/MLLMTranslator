@@ -8,6 +8,8 @@ interface RendererSettings {
   goApiKey: string
   model: string
   endpoint: string
+  autoStart: boolean
+  autoStartSupported: boolean
   sourceLanguages: LanguageDef[]
   targetLanguages: LanguageDef[]
   currentSourceId: string
