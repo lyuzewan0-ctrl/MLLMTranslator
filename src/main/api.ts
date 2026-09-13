@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { LanguageDef, languagePromptName } from "./languages"
 
 export interface TranslationResult {
@@ -28,6 +29,7 @@ type JsonRecord = Record<string, unknown>
 
 const OPENAI_ENDPOINT = "https://opencode.ai/zen/go/v1/chat/completions"
 const ANTHROPIC_ENDPOINT = "https://opencode.ai/zen/go/v1/messages"
+const CLIENT_USER_AGENT = `MMTranslator/${require("../../package.json").version}`
 
 // Models that speak the Anthropic messages protocol (vision via image source)
 const ANTHROPIC_VISION_MODELS = new Set([
@@ -126,10 +128,11 @@ async function callOpenAIRaw(
         ],
       },
     ],
-    temperature: 0,
+    temperature: opts.model === "kimi-k2.7-code" ? 1 : 0,
   }
   if (opts.maxTokens) body.max_tokens = opts.maxTokens
-  if (opts.quickMode) body.reasoning_effort = "none"
+  // Kimi K2.7 Code always thinks; explicitly disabling it is rejected with HTTP 400.
+  if (opts.quickMode && opts.model !== "kimi-k2.7-code") body.reasoning_effort = "none"
   const json = await postJson(
     endpoint,
     {
@@ -201,9 +204,20 @@ async function postJson(
   else externalSignal?.addEventListener("abort", abortFromExternal, { once: true })
   const timeout = setTimeout(() => controller.abort(), 60_000)
   try {
+    const url = new URL(endpoint)
+    const isOpenCode = url.protocol === "https:" && url.hostname === "opencode.ai"
+    // Each screenshot is an independent, single-turn conversation. Generate its
+    // routing ID once here; any future retries must reuse these request headers.
+    const requestHeaders = isOpenCode
+      ? {
+          ...headers,
+          "User-Agent": CLIENT_USER_AGENT,
+          "x-opencode-session": randomUUID(),
+        }
+      : headers
     const res = await fetch(endpoint, {
       method: "POST",
-      headers,
+      headers: requestHeaders,
       body: JSON.stringify(body),
       signal: controller.signal,
     })

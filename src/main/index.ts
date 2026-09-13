@@ -284,7 +284,7 @@ function toggleQuickMode() {
   updateTrayMenu()
   showNotification(
     quickMode ? "快速模式" : "思考模式",
-    quickMode ? "已切换至快速模式（无思考）。" : "已切换至思考模式。",
+    quickMode ? "已切换至快速模式（部分模型仍需思考）。" : "已切换至思考模式。",
     true,
   )
 }

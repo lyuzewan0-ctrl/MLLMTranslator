@@ -212,6 +212,16 @@ assets/                   托盘与应用图标
 确认已配置有效的 OpenCode Go API Key、网络可以访问 `opencode.ai`，且所选模型当前
 可用。API 请求超过 60 秒会被取消并显示超时错误。
 
+### API 提示缺少 x-opencode-session
+
+OpenCode Go 要求客户端携带会话标识和自己的 User-Agent。0.2.2 起已为截图翻译和
+数学 OCR 的两种 API 协议补齐这些请求头；每张截图是独立的单轮会话。升级后请从
+托盘彻底退出旧版，再启动新版。自定义第三方端点不会附加 OpenCode 专用请求头。
+
+Kimi K2.7 Code 不允许关闭思考，因此即使选择快速模式，也会保留该模型默认的思考行为。
+OpenCode Go [官方说明](https://opencode.ai/docs/go/#where-can-i-use-it)主要面向编程代理，
+补齐请求头并不代表服务方保证截图翻译用途的长期可用性。
+
 ### 如何彻底退出应用
 
 关闭窗口只会将应用留在托盘后台运行。请在托盘菜单中选择“退出”。
