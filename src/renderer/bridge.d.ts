@@ -15,6 +15,7 @@ interface RendererSettings {
   currentTargetId: string
   shortcuts: {
     screenshot: string
+    selection: string
     quickScreenshot: string
     math: string
     cycleModel: string
@@ -25,6 +26,12 @@ interface RendererSettings {
 }
 
 interface OverlayResultData {
+  sessionId: number
+  sourceLanguages: LanguageDef[]
+  targetLanguages: LanguageDef[]
+  sourceId: string
+  targetId: string
+  autoTranslate?: boolean
   detected: string
   recognized: string
   translated: string
@@ -57,6 +64,9 @@ interface BridgeApi {
   overlay: {
     close(): void
     copy(text: string): void
+    translate(input: { sessionId: number; text: string; sourceId: string; targetId: string }): Promise<{
+      detected_language: string; recognized: string; translated: string
+    } | null>
   }
   math: {
     close(): void

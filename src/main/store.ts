@@ -7,6 +7,7 @@ import {
 
 export interface ShortcutConfig {
   screenshot: string
+  selection: string
   quickScreenshot: string
   math: string
   cycleModel: string
@@ -52,6 +53,7 @@ export const DEFAULT_SETTINGS: Settings = {
   currentTargetId: "zh",
   shortcuts: {
     screenshot: "Alt+S",
+    selection: "Alt+D",
     quickScreenshot: "Alt+Q",
     math: "Alt+M",
     cycleModel: "Alt+K",
@@ -126,6 +128,7 @@ function normalizeSettings(value: unknown): Settings {
       ? requestedTargetId
       : targetLanguages[0].id,
     shortcuts: {
+      selection: stringValue(shortcuts.selection, DEFAULT_SETTINGS.shortcuts.selection),
       screenshot: stringValue(
         shortcuts.screenshot,
         DEFAULT_SETTINGS.shortcuts.screenshot,

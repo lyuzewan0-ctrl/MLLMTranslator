@@ -11,19 +11,28 @@
   <body>
     <div id="header">
       <span id="title">翻译结果</span>
-      <span id="close" title="关闭 (Esc)">×</span>
+      <button id="close" title="关闭 (Esc)" aria-label="关闭">×</button>
     </div>
     <div id="loading">识别中…</div>
     <div id="content" hidden>
+      <div id="languages">
+        <select id="sourceLanguage" aria-label="源语言" title="本次翻译的源语言"></select>
+        <span aria-hidden="true">→</span>
+        <select id="targetLanguage" aria-label="目标语言" title="本次翻译的目标语言"></select>
+      </div>
       <div class="block">
         <div class="label"><span id="srcLabel">识别结果</span><button class="copy" data-target="src">复制</button></div>
-        <div class="text" id="src"></div>
+        <textarea class="text" id="src" aria-label="原文" placeholder="在此编辑或粘贴原文…" spellcheck="false"></textarea>
+      </div>
+      <div id="translateActions">
+        <span id="translationStatus" role="status" aria-live="polite"></span>
+        <button id="translate" title="Ctrl+Enter">翻译 <kbd>Ctrl+Enter</kbd></button>
       </div>
       <div class="block">
         <div class="label"><span id="tgtLabel">翻译</span><button class="copy" data-target="tgt">复制</button></div>
         <div class="text" id="tgt"></div>
       </div>
-      <div id="error" hidden></div>
+      <div id="error" role="alert" hidden></div>
     </div>
     <script type="module" src="overlay.js"></script>
   </body>

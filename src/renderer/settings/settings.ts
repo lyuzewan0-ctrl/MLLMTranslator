@@ -9,6 +9,7 @@ const apiKey = $("apiKey") as HTMLInputElement
 const model = $("model") as HTMLSelectElement
 const endpoint = $("endpoint") as HTMLInputElement
 const scScreenshot = $("scScreenshot") as HTMLInputElement
+const scSelection = $("scSelection") as HTMLInputElement
 const scMath = $("scMath") as HTMLInputElement
 const scQuick = $("scQuick") as HTMLInputElement
 const scModel = $("scModel") as HTMLInputElement
@@ -41,6 +42,7 @@ async function load() {
   model.value = s.model
   endpoint.value = s.endpoint
   scScreenshot.value = s.shortcuts.screenshot
+  scSelection.value = s.shortcuts.selection
   scMath.value = s.shortcuts.math || ""
   scQuick.value = s.shortcuts.quickScreenshot || ""
   scModel.value = s.shortcuts.cycleModel || ""
@@ -65,6 +67,7 @@ async function save() {
     },
     shortcuts: {
       screenshot: scScreenshot.value.trim(),
+      selection: scSelection.value.trim(),
       math: scMath.value.trim(),
       quickScreenshot: scQuick.value.trim(),
       cycleModel: scModel.value.trim(),

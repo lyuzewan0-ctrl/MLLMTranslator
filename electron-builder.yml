@@ -5,6 +5,8 @@ directories:
 files:
   - dist/**/*
   - assets/**/*
+asarUnpack:
+  - dist/native/**/*
 win:
   target: nsis
   icon: assets/tray-icon.png

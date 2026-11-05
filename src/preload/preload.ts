@@ -16,6 +16,8 @@ const api = {
   overlay: {
     close: () => ipcRenderer.send("overlay:close"),
     copy: (text: string) => ipcRenderer.send("overlay:copy", text),
+    translate: (input: { sessionId: number; text: string; sourceId: string; targetId: string }) =>
+      ipcRenderer.invoke("overlay:translate", input),
   },
   math: {
     close: () => ipcRenderer.send("math:close"),
@@ -41,6 +43,12 @@ const api = {
   openExternal: () => ipcRenderer.send("open-external"),
   onOverlayResult: (
     cb: (r: {
+      sessionId: number
+      sourceLanguages: { id: string; name: string; english: string }[]
+      targetLanguages: { id: string; name: string; english: string }[]
+      sourceId: string
+      targetId: string
+      autoTranslate?: boolean
       detected: string
       recognized: string
       translated: string

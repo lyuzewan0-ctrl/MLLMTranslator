@@ -12,13 +12,14 @@ function copyDir(srcDir, destDir) {
     const d = path.join(destDir, entry.name)
     if (entry.isDirectory()) {
       copyDir(s, d)
-    } else if (/\.(html|css|svg|png|ico)$/i.test(entry.name)) {
+    } else if (/\.(html|css|svg|png|ico|ps1)$/i.test(entry.name)) {
       fs.copyFileSync(s, d)
     }
   }
 }
 
 copyDir(path.join(src, "renderer"), path.join(dist, "renderer"))
+copyDir(path.join(src, "native"), path.join(dist, "native"))
 
 const assetsSrc = path.join(root, "assets")
 const assetsDest = path.join(dist, "assets")

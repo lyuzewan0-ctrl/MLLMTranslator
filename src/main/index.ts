@@ -24,7 +24,8 @@ import {
   cycleLanguage,
   findLanguage,
 } from "./languages"
-import { translateScreenshot, parseMath } from "./api"
+import { translateScreenshot, translateText, parseMath } from "./api"
+import { captureSelectedText } from "./selection"
 import {
   initScreenshotModule,
   startSelection,
@@ -43,6 +44,7 @@ interface OverlayResultData {
   targetLabel: string
   loading?: boolean
   error?: string
+  autoTranslate?: boolean
 }
 
 interface MathResultData {
@@ -97,6 +99,10 @@ let settingsWindow: BrowserWindow | null = null
 let pendingOverlayData: OverlayResultData | null = null
 let pendingMathData: MathResultData | null = null
 let translationRequestId = 0
+let overlaySessionId = 0
+let selectionInProgress = false
+let overlayLanguages: Pick<ReturnType<typeof getSettings>,
+  "sourceLanguages" | "targetLanguages" | "currentSourceId" | "currentTargetId"> | null = null
 let mathRequestId = 0
 let translationAbortController: AbortController | null = null
 let mathAbortController: AbortController | null = null
@@ -180,6 +186,10 @@ function updateTrayMenu() {
       click: () => triggerScreenshot(),
     },
     {
+      label: "文本翻译（粘贴原文）",
+      click: () => openTextTranslation(""),
+    },
+    {
       label: "数学解析 (MD/TeX)",
       click: () => triggerMathCapture(),
     },
@@ -237,6 +247,7 @@ function registerShortcuts() {
     return ok
   }
   tryReg(s.shortcuts.screenshot, triggerScreenshot)
+  tryReg(s.shortcuts.selection, () => void triggerSelectionTranslation())
   if (s.shortcuts.quickScreenshot && s.shortcuts.quickScreenshot !== s.shortcuts.screenshot) {
     tryReg(s.shortcuts.quickScreenshot, toggleQuickMode)
   }
@@ -249,6 +260,7 @@ function registerShortcuts() {
 }
 
 function triggerScreenshot() {
+  if (selectionInProgress) return
   console.log("[screenshot] Alt+S triggered, quickMode:", quickMode)
   if (!getSettings().goApiKey) {
     console.log("[screenshot] no API key, opening settings")
@@ -256,6 +268,7 @@ function triggerScreenshot() {
     openSettings()
     return
   }
+  cancelTranslationRequest()
   startSelection("translate").catch((error: unknown) => {
     const message = errorMessage(error)
     console.error("[screenshot] start selection failed", message)
@@ -263,7 +276,36 @@ function triggerScreenshot() {
   })
 }
 
+function openTextTranslation(text: string, error?: string): void {
+  cancelTranslationRequest()
+  const point = screen.getCursorScreenPoint()
+  showOverlayLoading({ ...point, width: 1, height: 1 })
+  showOverlayResult({
+    detected: "", recognized: text, translated: "", sourceLabel: "原文", targetLabel: "译文",
+    error, autoTranslate: Boolean(text.trim()),
+  })
+}
+
+async function triggerSelectionTranslation(): Promise<void> {
+  if (selectionInProgress) return
+  selectionInProgress = true
+  cancelTranslationRequest()
+  const requestId = translationRequestId
+  try {
+    // Do not show/focus our window until copying from the foreground app finishes.
+    const text = await captureSelectedText()
+    if (requestId !== translationRequestId) return
+    openTextTranslation(text)
+  } catch (error: unknown) {
+    if (requestId !== translationRequestId) return
+    openTextTranslation("", errorMessage(error))
+  } finally {
+    selectionInProgress = false
+  }
+}
+
 function triggerMathCapture() {
+  if (selectionInProgress) return
   console.log("[math] Alt+M triggered, quickMode:", quickMode)
   if (!getSettings().goApiKey) {
     console.log("[math] no API key, opening settings")
@@ -354,13 +396,13 @@ function positionResultWindow(
 function ensureOverlay(): BrowserWindow {
   if (overlayWindow && !overlayWindow.isDestroyed()) return overlayWindow
   overlayWindow = new BrowserWindow({
-    width: 360,
-    height: 220,
+    width: 480,
+    height: 480,
     frame: false,
     transparent: false,
     resizable: true,
-    minWidth: 280,
-    minHeight: 180,
+    minWidth: 360,
+    minHeight: 360,
     skipTaskbar: IS_LINUX,
     show: false,
     title: "翻译结果",
@@ -385,6 +427,8 @@ function ensureOverlay(): BrowserWindow {
     }
   })
   overlayWindow.on("closed", () => {
+    cancelTranslationRequest()
+    pendingOverlayData = null
     overlayWindow = null
   })
   return overlayWindow
@@ -392,14 +436,22 @@ function ensureOverlay(): BrowserWindow {
 
 function sendToOverlay(data: OverlayResultData): void {
   const win = ensureOverlay()
+  const s = overlayLanguages || getSettings()
+  const payload = {
+    ...data, sessionId: overlaySessionId,
+    sourceLanguages: s.sourceLanguages, targetLanguages: s.targetLanguages,
+    sourceId: s.currentSourceId, targetId: s.currentTargetId,
+  }
   if (win.webContents.isLoading()) {
-    pendingOverlayData = data
+    pendingOverlayData = payload
   } else {
-    win.webContents.send("overlay:result", data)
+    win.webContents.send("overlay:result", payload)
   }
 }
 
 function showOverlayLoading(near: CaptureBounds): void {
+  overlaySessionId++
+  overlayLanguages = getSettings()
   console.log("[overlay] showOverlayLoading near:", JSON.stringify(near))
   const win = ensureOverlay()
   positionResultWindow(win, near)
@@ -568,7 +620,7 @@ async function onCaptured(
       signal: controller.signal,
     })
     if (requestId !== translationRequestId) return
-    console.log("[onCaptured] API result:", JSON.stringify(res).slice(0, 200))
+    console.log("[onCaptured] translation completed")
     showOverlayResult({
       detected: res.detected_language,
       recognized: res.recognized,
@@ -666,6 +718,35 @@ function setupIpc() {
   ipcMain.on("overlay:copy", (event, text: unknown) => {
     if (!isWindowSender(event.sender, overlayWindow)) return
     if (typeof text === "string" && text) clipboard.writeText(text)
+  })
+  ipcMain.handle("overlay:translate", async (event, input: unknown) => {
+    assertWindowSender(event.sender, overlayWindow)
+    if (!input || typeof input !== "object") throw new Error("无效的翻译请求")
+    const data = input as Record<string, unknown>
+    if (data.sessionId !== overlaySessionId || !overlayWindow?.isVisible()) return null
+    if (typeof data.text !== "string" || !data.text.trim()) throw new Error("请先输入原文")
+    if (data.text.length > 50_000) throw new Error("原文过长，请分段翻译（最多 50,000 字符）")
+    const s = getSettings()
+    const src = s.sourceLanguages.find((language) => language.id === data.sourceId)
+    const tgt = s.targetLanguages.find((language) => language.id === data.targetId)
+    if (!src || !tgt) throw new Error("语言配置已变化，请重新打开翻译窗口")
+    if (!s.goApiKey) throw new Error("请先在设置中填写 OpenCode Go API Key，再重试")
+    cancelTranslationRequest()
+    const requestId = translationRequestId
+    const controller = new AbortController()
+    translationAbortController = controller
+    try {
+      const result = await translateText(data.text, src, tgt, {
+        apiKey: s.goApiKey, endpoint: s.endpoint, model: s.model,
+        quickMode, signal: controller.signal,
+      })
+      return requestId === translationRequestId ? result : null
+    } catch (error: unknown) {
+      if (requestId !== translationRequestId) return null
+      throw error
+    } finally {
+      if (translationAbortController === controller) translationAbortController = null
+    }
   })
 
   ipcMain.on("math:close", (event) => {
