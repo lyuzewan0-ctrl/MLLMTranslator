@@ -1,6 +1,6 @@
 {
   "name": "screenshot-translator",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Multimodal screenshot translator using OpenCode Go (kimi-k2.7-code)",
   "main": "dist/main/index.js",
   "desktopName": "ScreenshotTranslator.desktop",
@@ -32,5 +32,10 @@
     "electron": "42.9.0",
     "electron-builder": "26.15.3",
     "typescript": "5.6.3"
+  },
+  "homepage": "https://github.com/lyuzewan0-ctrl/translator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lyuzewan0-ctrl/translator.git"
   }
 }

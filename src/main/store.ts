@@ -34,6 +34,7 @@ export interface Settings {
   model: string
   endpoint: string
   launchAtLogin: boolean
+  autoStart: boolean
   sourceLanguages: LanguageDef[]
   targetLanguages: LanguageDef[]
   currentSourceId: string
@@ -47,6 +48,7 @@ export const DEFAULT_SETTINGS: Settings = {
   model: "minimax-m3",
   endpoint: "",
   launchAtLogin: false,
+  autoStart: false,
   sourceLanguages: BUILTIN_SOURCE_LANGUAGES,
   targetLanguages: BUILTIN_TARGET_LANGUAGES,
   currentSourceId: "auto",
@@ -119,6 +121,7 @@ function normalizeSettings(value: unknown): Settings {
     model: stringValue(data.model, DEFAULT_SETTINGS.model, true),
     endpoint: stringValue(data.endpoint, DEFAULT_SETTINGS.endpoint),
     launchAtLogin: booleanValue(data.launchAtLogin, DEFAULT_SETTINGS.launchAtLogin),
+    autoStart: data.autoStart === true,
     sourceLanguages,
     targetLanguages,
     currentSourceId: sourceLanguages.some(({ id }) => id === requestedSourceId)

@@ -9,6 +9,9 @@ interface RendererSettings {
   model: string
   endpoint: string
   launchAtLogin: boolean
+  launchAtLoginSupported: boolean
+  autoStart: boolean
+  autoStartSupported: boolean
   sourceLanguages: LanguageDef[]
   targetLanguages: LanguageDef[]
   currentSourceId: string

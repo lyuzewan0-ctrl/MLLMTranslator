@@ -49,6 +49,7 @@ function setup() {
   }
   const modules = {
     electron,
+    "./autostart": { syncLinuxAutoStart: async () => {} },
     "./store": { getSettings: () => structuredClone(settings), setSettings: (patch) => Object.assign(settings, patch), AVAILABLE_MODELS: ["minimax-m3"] },
     "./languages": { findLanguage: (list, id) => list.find((l) => l.id === id) },
     "./selection": { captureSelectedText: () => new Promise((resolve, reject) => captures.push({ resolve, reject })) },

@@ -19,6 +19,8 @@ const curSource = $("curSource") as HTMLSelectElement
 const curTarget = $("curTarget") as HTMLSelectElement
 const mathFormat = $("mathFormat") as HTMLSelectElement
 const launchAtLogin = $("launchAtLogin") as HTMLInputElement
+const autoStartSection = $("autoStartSection") as HTMLElement
+const autoStart = $("autoStart") as HTMLInputElement
 const statusEl = $("status") as HTMLDivElement
 
 function fillSelect(sel: HTMLSelectElement, langs: LanguageDef[], currentId: string) {
@@ -41,6 +43,8 @@ async function load() {
   apiKey.value = s.goApiKey
   model.value = s.model
   endpoint.value = s.endpoint
+  autoStartSection.hidden = !s.autoStartSupported
+  autoStart.checked = s.autoStart
   scScreenshot.value = s.shortcuts.screenshot
   scSelection.value = s.shortcuts.selection
   scMath.value = s.shortcuts.math || ""
@@ -52,10 +56,11 @@ async function load() {
   fillSelect(curTarget, s.targetLanguages, s.currentTargetId)
   mathFormat.value = s.math?.outputFormat || "md"
   launchAtLogin.checked = s.launchAtLogin
+  $("windowsAutoStartSection").hidden = !s.launchAtLoginSupported
 }
 
 async function save() {
-  const patch = {
+  const patch: Partial<RendererSettings> = {
     goApiKey: apiKey.value.trim(),
     model: model.value || "minimax-m3",
     endpoint: endpoint.value.trim(),
@@ -75,6 +80,7 @@ async function save() {
       cycleTarget: scTarget.value.trim(),
     },
   }
+  if (!autoStartSection.hidden) patch.autoStart = autoStart.checked
   await bridge.settings.set(patch)
   statusEl.textContent = "已保存 ✓"
   setTimeout(() => (statusEl.textContent = ""), 1500)

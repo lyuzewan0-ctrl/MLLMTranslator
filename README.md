@@ -139,6 +139,9 @@ Markdown/LaTeX 数学代码。因此，它也能处理普通 OCR 较难理解的
 
 ### Ubuntu 24.04 LTS
 
+可在设置的“启动”区域启用登录 Linux 时自动启动。应用会维护当前用户的
+`~/.config/autostart/ai.opencode.screenshot-translator.desktop`；关闭选项会移除该启动项。
+
 应用启动后常驻 GNOME 顶栏右侧，与网络、输入法和电源图标位于同一区域，不会为常驻
 状态占用 Dock。如果托盘图标没有出现，请确认 AppIndicator 组件已安装：
 
