@@ -7,6 +7,8 @@ interface LanguageDef {
 interface RendererSettings {
   goApiKey: string
   model: string
+  availableModels: { id: string; name: string }[]
+  defaultModel: string
   endpoint: string
   launchAtLogin: boolean
   launchAtLoginSupported: boolean

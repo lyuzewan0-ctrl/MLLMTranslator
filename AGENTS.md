@@ -1,7 +1,7 @@
 # Screenshot Translator
 
 Multimodal screenshot translator desktop app (Electron + TypeScript).
-Uses OpenCode Go's `kimi-k2.7-code` model to OCR + translate screen captures.
+Uses OpenCode Go vision models to OCR + translate screen captures.
 Also supports math OCR: screenshot → Markdown/LaTeX code with format switching.
 
 ## Architecture
@@ -33,7 +33,7 @@ npm run build
 - Default shortcuts: `Alt+S` screenshot translate, `Alt+M` math parse, `Alt+Q` quick/thinking toggle, `Alt+L` cycle source language, `Alt+T` cycle target language.
 - Default target language: 简体中文. Default source: 自动识别 (auto).
 - Default math output format: Markdown (switchable to LaTeX in result window or settings).
-- API endpoint: `https://opencode.ai/zen/go/v1/chat/completions`, model `kimi-k2.7-code`.
+- `src/main/models.ts` defines the built-in Go endpoints, vision models, quick-mode settings and default model.
 - `screenshot.ts` supports capture modes (`translate` | `math`); the mode is set before starting selection and routed in the `onCaptured` callback.
 - `api.ts` has a shared `callVision()` router; `translateScreenshot()` and `parseMath()` are the two public API functions.
 

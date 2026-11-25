@@ -14,7 +14,7 @@ function setup() {
   const requests = []
   const captures = []
   const languages = [{ id: "en", name: "English", english: "English" }, { id: "zh", name: "中文", english: "Chinese" }]
-  const settings = { goApiKey: "test", model: "minimax-m3", sourceLanguages: languages, targetLanguages: languages, currentSourceId: "en", currentTargetId: "zh", shortcuts: { screenshot: "Alt+S", selection: "Alt+D" } }
+  const settings = { goApiKey: "test", model: "minimax-m3", sourceLanguages: languages, targetLanguages: languages, currentSourceId: "en", currentTargetId: "zh", shortcuts: { screenshot: "Alt+S", selection: "Alt+D", cycleModel: "Alt+K" } }
   class Window extends EventEmitter {
     constructor() {
       super(); this.visible = false; this.messages = []
@@ -50,7 +50,8 @@ function setup() {
   const modules = {
     electron,
     "./autostart": { syncLinuxAutoStart: async () => {} },
-    "./store": { getSettings: () => structuredClone(settings), setSettings: (patch) => Object.assign(settings, patch), AVAILABLE_MODELS: ["minimax-m3"] },
+    "./store": { getSettings: () => structuredClone(settings), setSettings: (patch) => Object.assign(settings, patch) },
+    "./models": require("../dist/main/models"),
     "./languages": { findLanguage: (list, id) => list.find((l) => l.id === id) },
     "./selection": { captureSelectedText: () => new Promise((resolve, reject) => captures.push({ resolve, reject })) },
     "./api": { translateText: (text, source, target, opts) => new Promise((resolve, reject) => requests.push({ text, source, target, opts, resolve, reject })) },
@@ -64,6 +65,21 @@ function setup() {
   return { handlers, events, shortcuts, windows, requests, captures, settings }
 }
 const tick = () => new Promise((resolve) => setImmediate(resolve))
+
+test("model shortcut cycles through every built-in option and wraps", async () => {
+  const { MODELS } = require("../dist/main/models")
+  const h = setup()
+  await tick()
+  const initial = h.settings.model
+  const seen = new Set()
+  for (const _ of MODELS) {
+    h.shortcuts.get("Alt+K")()
+    seen.add(h.settings.model)
+  }
+  assert.deepEqual(seen, new Set(MODELS.map(model => model.id)))
+  assert.equal(h.settings.model, initial)
+})
+
 async function open(h) {
   await tick()
   h.shortcuts.get("Alt+D")()

@@ -1,4 +1,5 @@
 import Store from "electron-store"
+import { DEFAULT_MODEL, findModel, isBuiltinEndpoint } from "./models"
 import {
   BUILTIN_SOURCE_LANGUAGES,
   BUILTIN_TARGET_LANGUAGES,
@@ -14,14 +15,6 @@ export interface ShortcutConfig {
   cycleSource: string
   cycleTarget: string
 }
-
-export const AVAILABLE_MODELS = [
-  "minimax-m3",
-  "kimi-k2.7-code",
-  "kimi-k2.6",
-  "qwen3.7-max",
-  "minimax-m2.7",
-] as const
 
 export type MathOutputFormat = "md" | "tex"
 
@@ -45,7 +38,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   goApiKey: "",
-  model: "minimax-m3",
+  model: DEFAULT_MODEL,
   endpoint: "",
   launchAtLogin: false,
   autoStart: false,
@@ -99,6 +92,9 @@ function normalizeSettings(value: unknown): Settings {
   const data = asRecord(value)
   const shortcuts = asRecord(data.shortcuts)
   const math = asRecord(data.math)
+  const requestedModel = stringValue(data.model, DEFAULT_MODEL, true).trim()
+  const endpoint = stringValue(data.endpoint, DEFAULT_SETTINGS.endpoint).trim()
+  const retired = isBuiltinEndpoint(endpoint) && !findModel(requestedModel)
   const sourceLanguages = normalizeLanguages(
     data.sourceLanguages,
     DEFAULT_SETTINGS.sourceLanguages,
@@ -118,8 +114,8 @@ function normalizeSettings(value: unknown): Settings {
 
   return {
     goApiKey: stringValue(data.goApiKey, DEFAULT_SETTINGS.goApiKey),
-    model: stringValue(data.model, DEFAULT_SETTINGS.model, true),
-    endpoint: stringValue(data.endpoint, DEFAULT_SETTINGS.endpoint),
+    model: retired ? DEFAULT_MODEL : requestedModel,
+    endpoint: retired ? "" : endpoint,
     launchAtLogin: booleanValue(data.launchAtLogin, DEFAULT_SETTINGS.launchAtLogin),
     autoStart: data.autoStart === true,
     sourceLanguages,

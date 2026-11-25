@@ -15,11 +15,11 @@ import {
 import path from "node:path"
 import fs from "node:fs"
 import {
-  AVAILABLE_MODELS,
   getSettings,
   setSettings,
   resetSettings,
 } from "./store"
+import { MODELS, DEFAULT_MODEL } from "./models"
 import {
   cycleLanguage,
   findLanguage,
@@ -146,6 +146,8 @@ function showNotification(title: string, body: string, silent = false): void {
 function settingsForRenderer() {
   return {
     ...getSettings(),
+    availableModels: MODELS.map(({ id, name }) => ({ id, name })),
+    defaultModel: DEFAULT_MODEL,
     autoStartSupported: IS_LINUX,
     launchAtLoginSupported: process.platform === "win32",
   }
@@ -388,10 +390,8 @@ function cycleSource() {
 
 function cycleModel() {
   const current = getSettings().model
-  const currentIndex = AVAILABLE_MODELS.indexOf(
-    current as (typeof AVAILABLE_MODELS)[number],
-  )
-  const next = AVAILABLE_MODELS[(currentIndex + 1) % AVAILABLE_MODELS.length]
+  const currentIndex = MODELS.findIndex(model => model.id === current)
+  const next = MODELS[(currentIndex + 1) % MODELS.length].id
   setSettings({ model: next })
   console.log(`[model] switched from ${current} to ${next}`)
   updateTrayMenu()

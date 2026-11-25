@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { LanguageDef, languagePromptName } from "./languages"
+import { findModel, GO_ENDPOINTS } from "./models"
 
 export interface TranslationResult {
   detected_language: string
@@ -27,24 +28,21 @@ export interface VisionCallOpts {
 
 type JsonRecord = Record<string, unknown>
 
-const OPENAI_ENDPOINT = "https://opencode.ai/zen/go/v1/chat/completions"
-const ANTHROPIC_ENDPOINT = "https://opencode.ai/zen/go/v1/messages"
 const CLIENT_USER_AGENT = `MMTranslator/${require("../../package.json").version}`
 
-// Models that speak the Anthropic messages protocol (vision via image source)
-const ANTHROPIC_VISION_MODELS = new Set([
-  "minimax-m3",
-  "minimax-m2.7",
-  "minimax-m2.5",
-  "qwen3.7-max",
-  "qwen3.7-plus",
-  "qwen3.6-plus",
-  "qwen3.5-plus",
-])
+// Older custom endpoints may still serve models removed from the Go catalog.
+const LEGACY_MESSAGES_MODELS = ["minimax-m2.7", "minimax-m2.5", "qwen3.7-max", "qwen3.6-plus", "qwen3.5-plus"]
 
 export function modelKind(model: string): ProviderKind {
-  if (ANTHROPIC_VISION_MODELS.has(model)) return "anthropic"
-  return "openai"
+  return findModel(model)?.protocol ?? (LEGACY_MESSAGES_MODELS.includes(model) ? "anthropic" : "openai")
+}
+
+function quickModeParams(opts: VisionCallOpts): Record<string, unknown> {
+  if (!opts.quickMode) return {}
+  const quick = findModel(opts.model)?.quick ?? "none"
+  if (quick === "disable-thinking") return { thinking: { type: "disabled" } }
+  if (quick === "default") return {}
+  return { reasoning_effort: quick }
 }
 
 function buildPrompt(source: LanguageDef, target: LanguageDef): string {
@@ -133,9 +131,10 @@ async function callOpenAIRaw(
   prompt: string,
   opts: VisionCallOpts,
 ): Promise<string> {
-  const endpoint = resolveEndpoint(opts.endpoint, OPENAI_ENDPOINT)
+  const endpoint = resolveEndpoint(opts.endpoint, GO_ENDPOINTS.openai)
   const body: Record<string, unknown> = {
     model: opts.model,
+    ...quickModeParams(opts),
     messages: [
       {
         role: "user",
@@ -148,11 +147,9 @@ async function callOpenAIRaw(
         ],
       },
     ],
-    temperature: opts.model === "kimi-k2.7-code" ? 1 : 0,
   }
   if (opts.maxTokens) body.max_tokens = opts.maxTokens
-  // Kimi K2.7 Code always thinks; explicitly disabling it is rejected with HTTP 400.
-  if (opts.quickMode && opts.model !== "kimi-k2.7-code") body.reasoning_effort = "none"
+  if (!findModel(opts.model)) body.temperature = 0
   const json = await postJson(
     endpoint,
     {
@@ -173,9 +170,10 @@ async function callAnthropicRaw(
   prompt: string,
   opts: VisionCallOpts,
 ): Promise<string> {
-  const endpoint = resolveEndpoint(opts.endpoint, ANTHROPIC_ENDPOINT)
+  const endpoint = resolveEndpoint(opts.endpoint, GO_ENDPOINTS.anthropic)
   const body: Record<string, unknown> = {
     model: opts.model,
+    ...quickModeParams(opts),
     max_tokens: opts.maxTokens ?? 1024,
     messages: [
       {
@@ -194,7 +192,6 @@ async function callAnthropicRaw(
       },
     ],
   }
-  if (opts.quickMode) body.reasoning_effort = "none"
   const json = await postJson(
     endpoint,
     {

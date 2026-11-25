@@ -28,26 +28,27 @@ test("both vision protocols send OpenCode routing headers for translation and ma
     sessions.add(session)
     assert.equal(headers.get("user-agent"), `MMTranslator/${version}`)
     const body = JSON.parse(init.body)
-    assert.equal(body.reasoning_effort, body.model === "kimi-k2.7-code" ? undefined : "none")
+    assert.equal(body.reasoning_effort, body.model === "kimi-k3.1-pro" ? "low" : undefined)
     const content = JSON.stringify(answer)
     if (endpoint.endsWith("/messages")) {
+      assert.deepEqual(body.thinking, { type: "disabled" })
       assert.equal(headers.get("x-api-key"), "test-key")
       assert.equal(headers.get("anthropic-version"), "2023-06-01")
       assert.equal(body.messages[0].content[1].source.data, "test-image")
       return Response.json({ content: [{ type: "text", text: content }] })
     }
     assert.equal(headers.get("authorization"), "Bearer test-key")
-    assert.equal(body.temperature, body.model === "kimi-k2.7-code" ? 1 : 0)
+    assert.equal(body.temperature, undefined)
     assert.equal(body.messages[0].content[1].image_url.url, "data:image/png;base64,test-image")
     return Response.json({ choices: [{ message: { content } }] })
   })
-  for (const model of ["kimi-k2.7-code", "minimax-m3"]) {
+  for (const model of ["kimi-k2.7-code", "kimi-k3.1-pro", "minimax-m3"]) {
     const opts = { apiKey: "test-key", model, quickMode: true }
     const result = await translateScreenshot("test-image", source, target, opts)
     assert.equal(result.translated, "你好")
     assert.equal((await parseMath("test-image", opts)).markdown, "$x$")
   }
-  assert.equal(sessions.size, 4)
+  assert.equal(sessions.size, 6)
 })
 
 test("custom endpoints do not receive OpenCode-specific headers", async (t) => {

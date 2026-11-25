@@ -18,14 +18,8 @@
 
     <section>
       <label>模型</label>
-      <select id="model">
-        <option value="minimax-m3">MiniMax M3 (推荐，图像识别稳定)</option>
-        <option value="kimi-k2.7-code">Kimi K2.7 Code</option>
-        <option value="kimi-k2.6">Kimi K2.6</option>
-        <option value="qwen3.7-max">Qwen3.7 Max</option>
-        <option value="minimax-m2.7">MiniMax M2.7</option>
-      </select>
-      <small>端点自动选择（OpenAI/Anthropic 协议）。默认 MiniMax M3。</small>
+      <select id="model"></select>
+      <small>端点会按所选模型的协议自动选择。</small>
       <input type="text" id="endpoint" placeholder="端点（留空自动）" />
     </section>
 

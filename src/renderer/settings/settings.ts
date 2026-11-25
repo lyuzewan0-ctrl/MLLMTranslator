@@ -41,6 +41,11 @@ function showError(error: unknown) {
 async function load() {
   const s = await bridge.settings.get()
   apiKey.value = s.goApiKey
+  model.replaceChildren(...s.availableModels.map(({ id, name }) =>
+    new Option(id === s.defaultModel ? name + "（默认）" : name, id)))
+  if (!s.availableModels.some(({ id }) => id === s.model)) {
+    model.add(new Option(s.model, s.model))
+  }
   model.value = s.model
   endpoint.value = s.endpoint
   autoStartSection.hidden = !s.autoStartSupported
@@ -62,7 +67,7 @@ async function load() {
 async function save() {
   const patch: Partial<RendererSettings> = {
     goApiKey: apiKey.value.trim(),
-    model: model.value || "minimax-m3",
+    model: model.value,
     endpoint: endpoint.value.trim(),
     launchAtLogin: launchAtLogin.checked,
     currentSourceId: curSource.value,
