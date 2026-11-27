@@ -1,6 +1,6 @@
 {
   "name": "screenshot-translator",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Multimodal screenshot translator using OpenCode Go",
   "main": "dist/main/index.js",
   "desktopName": "ScreenshotTranslator.desktop",

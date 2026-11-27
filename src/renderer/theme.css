@@ -1,0 +1,76 @@
+/* Shared Windows-style surfaces and controls. Chromium tracks the OS theme live. */
+:root {
+  color-scheme: light dark;
+  font: 14px/1.5 "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+  --canvas: #f6f7f9;
+  --rail: #edf1f6;
+  --surface: #fff;
+  --control: #fbfbfc;
+  --hover: #f2f4f7;
+  --selected: #e0e7ef;
+  --line: #dcdfe4;
+  --edge: #b9bec5;
+  --text: #1b2026;
+  --muted: #565e68;
+  --accent: #0067b8;
+  --on-accent: #fff;
+  --error: #a4262c;
+  --error-bg: #fde9e8;
+  --success: #176339;
+  --shadow: 0 1px 2px rgb(0 0 0 / 5%);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #202226;
+    --rail: #1b1e23;
+    --surface: #2b2e33;
+    --control: #34373c;
+    --hover: #3a3e44;
+    --selected: #333c46;
+    --line: #40454b;
+    --edge: #61666e;
+    --text: #f3f4f6;
+    --muted: #bdc3ca;
+    --accent: #72c5ff;
+    --on-accent: #102631;
+    --error: #ffb4ae;
+    --error-bg: #442a2b;
+    --success: #88d5a4;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--canvas); color: var(--text); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button, select, input[type="text"], input[type="password"], textarea {
+  border: 1px solid var(--line);
+  border-bottom-color: var(--edge);
+  border-radius: 5px;
+  background: var(--control);
+}
+button, select { min-height: 32px; padding: 4px 12px; cursor: pointer; }
+select { min-width: 0; }
+input[type="text"], input[type="password"] { min-width: 0; padding: 6px 10px; }
+input::placeholder, textarea::placeholder { color: var(--muted); }
+input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
+  outline: none;
+  box-shadow: inset 0 -2px var(--accent);
+  background: var(--surface);
+  border-bottom-color: var(--accent);
+}
+button:hover:enabled, select:hover { background: var(--hover); }
+button.primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+button.primary:hover:enabled { background: color-mix(in srgb, var(--accent) 90%, var(--canvas)); }
+button:active:enabled { filter: brightness(.96); }
+button:disabled { opacity: .55; cursor: default; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: var(--accent); text-underline-offset: 3px; }
+.icon {
+  width: 20px; height: 20px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.6;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+@media (forced-colors: active) {
+  :root { --accent: Highlight; --line: ButtonBorder; --text: CanvasText; --muted: CanvasText; }
+  input:focus-visible, textarea:focus-visible { outline: 2px solid Highlight; }
+}

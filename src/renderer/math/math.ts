@@ -6,7 +6,7 @@ const loading = document.getElementById("loading") as HTMLDivElement
 const content = document.getElementById("content") as HTMLDivElement
 const codeEl = document.getElementById("code") as HTMLPreElement
 const errorEl = document.getElementById("error") as HTMLDivElement
-const closeBtn = document.getElementById("close") as HTMLSpanElement
+const closeBtn = document.getElementById("close") as HTMLButtonElement
 const copyBtn = document.getElementById("copyBtn") as HTMLButtonElement
 const saveBtn = document.getElementById("saveBtn") as HTMLButtonElement
 const tabs = document.querySelectorAll<HTMLButtonElement>(".tab")
@@ -20,12 +20,13 @@ function currentText(): string {
 
 function render() {
   codeEl.textContent = currentText() || ""
+  copyBtn.disabled = saveBtn.disabled = !currentText()
 }
 
 function setFormat(fmt: "md" | "tex") {
   currentFormat = fmt
   tabs.forEach((t) => {
-    t.classList.toggle("active", t.dataset.format === fmt)
+    t.setAttribute("aria-pressed", String(t.dataset.format === fmt))
   })
   render()
 }
@@ -42,7 +43,7 @@ bridge.math.onResult((r) => {
     errorEl.hidden = false
     errorEl.textContent = r.error
     mathData = { markdown: "", latex: "" }
-    codeEl.textContent = ""
+    render()
     return
   }
   errorEl.hidden = true
@@ -72,19 +73,17 @@ document.addEventListener("keydown", (e) => {
 copyBtn.addEventListener("click", () => {
   const text = codeEl.textContent
   if (text) bridge.math.copy(text)
-  const orig = copyBtn.textContent
   copyBtn.textContent = "已复制"
-  setTimeout(() => (copyBtn.textContent = orig), 900)
+  setTimeout(() => (copyBtn.textContent = "复制"), 900)
 })
 
 saveBtn.addEventListener("click", async () => {
   const text = currentText()
   if (!text) return
   try {
-    await bridge.math.save(text, currentFormat)
-    const orig = saveBtn.textContent
+    if (!await bridge.math.save(text, currentFormat)) return
     saveBtn.textContent = "已保存"
-    setTimeout(() => (saveBtn.textContent = orig), 900)
+    setTimeout(() => (saveBtn.textContent = "保存"), 900)
   } catch (e: unknown) {
     errorEl.hidden = false
     errorEl.textContent = e instanceof Error ? e.message : String(e)

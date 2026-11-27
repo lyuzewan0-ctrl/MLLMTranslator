@@ -22,6 +22,21 @@ const launchAtLogin = $("launchAtLogin") as HTMLInputElement
 const autoStartSection = $("autoStartSection") as HTMLElement
 const autoStart = $("autoStart") as HTMLInputElement
 const statusEl = $("status") as HTMLDivElement
+const navigation = document.querySelectorAll<HTMLButtonElement>("nav button[aria-controls]")
+
+function showPage(id: string) {
+  for (const button of navigation) {
+    const page = $(button.getAttribute("aria-controls")!)
+    page.hidden = page.id !== id
+    if (page.hidden) button.removeAttribute("aria-current")
+    else button.setAttribute("aria-current", "page")
+  }
+  document.querySelector("main")!.scrollTop = 0
+}
+
+for (const button of navigation) {
+  button.addEventListener("click", () => showPage(button.getAttribute("aria-controls")!))
+}
 
 function fillSelect(sel: HTMLSelectElement, langs: LanguageDef[], currentId: string) {
   sel.innerHTML = ""
@@ -35,6 +50,7 @@ function fillSelect(sel: HTMLSelectElement, langs: LanguageDef[], currentId: str
 }
 
 function showError(error: unknown) {
+  statusEl.classList.add("error")
   statusEl.textContent = error instanceof Error ? error.message : String(error)
 }
 
@@ -87,15 +103,15 @@ async function save() {
   }
   if (!autoStartSection.hidden) patch.autoStart = autoStart.checked
   await bridge.settings.set(patch)
-  statusEl.textContent = "已保存 ✓"
-  setTimeout(() => (statusEl.textContent = ""), 1500)
+  statusEl.classList.remove("error")
+  statusEl.textContent = "设置已保存"
 }
 
 async function reset() {
   await bridge.settings.reset()
   await load()
+  statusEl.classList.remove("error")
   statusEl.textContent = "已恢复默认"
-  setTimeout(() => (statusEl.textContent = ""), 1500)
 }
 
 $("save").addEventListener("click", () => void save().catch(showError))
@@ -105,4 +121,7 @@ $("goLink").addEventListener("click", (e) => {
   bridge.openExternal()
 })
 
-void load().catch(showError)
+document.querySelector("main")!.addEventListener("input", () => { statusEl.textContent = "" })
+void load().then(() => {
+  if (!apiKey.value && document.activeElement === document.body) showPage("services")
+}).catch(showError)

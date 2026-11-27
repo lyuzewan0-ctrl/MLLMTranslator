@@ -4,6 +4,7 @@ import {
   Tray,
   Menu,
   nativeImage,
+  nativeTheme,
   globalShortcut,
   ipcMain,
   shell,
@@ -452,7 +453,7 @@ function ensureOverlay(): BrowserWindow {
     skipTaskbar: IS_LINUX,
     show: false,
     title: "翻译结果",
-    backgroundColor: "#1e1e2e",
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#202226" : "#f6f7f9",
     webPreferences: {
       preload: path.join(__dirname, "..", "preload", "preload.js"),
       contextIsolation: true,
@@ -539,7 +540,7 @@ function ensureMathWindow(): BrowserWindow {
     skipTaskbar: IS_LINUX,
     show: false,
     title: "数学解析结果",
-    backgroundColor: "#1e1e2e",
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#202226" : "#f6f7f9",
     webPreferences: {
       preload: path.join(__dirname, "..", "preload", "preload.js"),
       contextIsolation: true,
@@ -700,12 +701,12 @@ function openSettings() {
     return
   }
   settingsWindow = new BrowserWindow({
-    width: 640,
-    height: 620,
-    title: "设置",
-    resizable: false,
-    minimizable: false,
-    maximizable: false,
+    width: 860,
+    height: 650,
+    minWidth: 480,
+    minHeight: 380,
+    title: "截图翻译 · 设置",
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#202226" : "#f6f7f9",
     skipTaskbar: IS_LINUX,
     webPreferences: {
       preload: path.join(__dirname, "..", "preload", "preload.js"),
@@ -714,6 +715,7 @@ function openSettings() {
       sandbox: true,
     },
   })
+  settingsWindow.removeMenu()
   loadRenderer(settingsWindow, "settings")
   settingsWindow.on("closed", () => {
     settingsWindow = null

@@ -18,9 +18,8 @@ function toClient(sx: number, sy: number) {
 function resetSelection() {
   dragging = false
   submitting = false
-  sel.style.display = "none"
-  size.style.display = "none"
-  hint.style.display = "block"
+  sel.hidden = size.hidden = true
+  hint.hidden = false
 }
 
 function draw(sx0: number, sy0: number, sx1: number, sy1: number) {
@@ -30,7 +29,7 @@ function draw(sx0: number, sy0: number, sx1: number, sy1: number) {
   sel.style.top = `${a.y}px`
   sel.style.width = `${b.x - a.x}px`
   sel.style.height = `${b.y - a.y}px`
-  size.textContent = `${b.x - a.x} x ${b.y - a.y}`
+  size.textContent = `${b.x - a.x} × ${b.y - a.y}`
   size.style.left = `${a.x}px`
   size.style.top = `${Math.max(0, a.y - 22)}px`
 }
@@ -46,9 +45,8 @@ document.addEventListener("mousedown", (e) => {
   dragging = true
   startScreenX = e.screenX
   startScreenY = e.screenY
-  sel.style.display = "block"
-  size.style.display = "block"
-  hint.style.display = "none"
+  sel.hidden = size.hidden = false
+  hint.hidden = true
   draw(startScreenX, startScreenY, startScreenX, startScreenY)
 })
 
@@ -65,9 +63,7 @@ document.addEventListener("mouseup", (e) => {
   const w = Math.abs(e.screenX - startScreenX)
   const h = Math.abs(e.screenY - startScreenY)
   if (w < 4 || h < 4) {
-    sel.style.display = "none"
-    size.style.display = "none"
-    hint.style.display = "block"
+    resetSelection()
     return
   }
   console.log("[selector:js] submit rect", x0, y0, w, h)

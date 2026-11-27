@@ -39,6 +39,7 @@ function setup() {
   Object.assign(app, { setName() {}, setAppUserModelId() {}, setLoginItemSettings() {}, requestSingleInstanceLock: () => true, whenReady: () => Promise.resolve(), commandLine: { appendSwitch() {} } })
   const electron = {
     app, BrowserWindow: Window,
+    nativeTheme: { shouldUseDarkColors: false },
     Tray: class { setImage() {} setContextMenu() {} setToolTip() {} },
     Menu: { buildFromTemplate: (x) => x },
     nativeImage: { createFromDataURL: () => ({ addRepresentation() {}, isEmpty: () => false }) },

@@ -1,0 +1,26 @@
+body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
+#header {
+  display: flex; align-items: center; gap: 9px; height: 38px; flex: none; padding-left: 15px;
+  border-bottom: 1px solid var(--line); -webkit-app-region: drag;
+}
+#header > .icon { color: var(--accent); width: 17px; height: 17px; }
+#title { flex: 1; font-size: 13px; font-weight: 600; }
+#close {
+  align-self: stretch; display: grid; place-items: center; width: 46px; padding: 0;
+  border: 0; border-radius: 0; background: transparent; -webkit-app-region: no-drag;
+}
+#close .icon { width: 16px; height: 16px; }
+#close:hover { background: #c42b1c; color: white; }
+#close:focus-visible { outline-offset: -3px; }
+#content { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 14px; overflow-y: auto; }
+#loading { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted); }
+#loading::before {
+  content: ""; width: 24px; height: 24px; border: 3px solid var(--line);
+  border-top-color: var(--accent); border-radius: 50%; animation: spin .9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(1turn); } }
+@media (prefers-reduced-motion: reduce) { #loading::before { animation: none; } }
+#error {
+  flex: none; max-height: 80px; overflow: auto; padding: 8px 12px; border-radius: 5px;
+  background: var(--error-bg); color: var(--error); font-size: 13px; overflow-wrap: anywhere; user-select: text;
+}

@@ -1,75 +1,88 @@
 <!doctype html>
-<html lang="zh">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
-    />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+    <link rel="stylesheet" href="../theme.css" />
     <link rel="stylesheet" href="settings.css" />
   </head>
   <body>
-    <h2>截图翻译 设置</h2>
-    <section>
-      <label>OpenCode Go API Key</label>
-      <input type="password" id="apiKey" placeholder="粘贴你的 Go API Key" />
-      <small>从 <a id="goLink" href="#">opencode.ai/auth</a> 获取。保存在本地。</small>
-    </section>
-
-    <section>
-      <label>模型</label>
-      <select id="model"></select>
-      <small>端点会按所选模型的协议自动选择。</small>
-      <input type="text" id="endpoint" placeholder="端点（留空自动）" />
-    </section>
-
-    <section>
-      <label>快捷键</label>
-      <div class="row"><span>截图翻译</span><input type="text" id="scScreenshot" /></div>
-      <div class="row"><span>划词翻译</span><input type="text" id="scSelection" /></div>
-      <div class="row"><span>数学解析</span><input type="text" id="scMath" /></div>
-      <div class="row"><span>切换快速/思考模式</span><input type="text" id="scQuick" /></div>
-      <div class="row"><span>切换模型</span><input type="text" id="scModel" /></div>
-      <div class="row"><span>切换源语言</span><input type="text" id="scSource" /></div>
-      <div class="row"><span>切换目标语言</span><input type="text" id="scTarget" /></div>
-      <small>格式如 Alt+S / Ctrl+Shift+T。选中文字后按 Alt+D 翻译（Windows）；Alt+M 数学解析，Alt+Q 切换模式，Alt+K 切换模型。保存后生效，留空可禁用。</small>
-    </section>
-
-    <section>
-      <label>默认语言</label>
-      <div class="row"><span>当前源语言</span><select id="curSource"></select></div>
-      <div class="row"><span>当前目标语言</span><select id="curTarget"></select></div>
-    </section>
-
-    <section>
-      <label>数学解析</label>
-      <div class="row"><span>默认输出格式</span><select id="mathFormat"><option value="md">Markdown</option><option value="tex">LaTeX</option></select></div>
-      <small>截图解析数学文本后，结果窗口默认显示的格式。可在结果窗口中随时切换。</small>
-    </section>
-
-    <section id="windowsAutoStartSection" hidden>
-      <label>应用设置</label>
-      <label class="check-row">
-        <input type="checkbox" id="launchAtLogin" />
-        <span>开机时自动启动</span>
-      </label>
-      <small>登录 Windows 后在后台启动截图翻译。</small>
-    </section>
-
-    <section id="autoStartSection" hidden>
-      <label>启动</label>
-      <label class="checkbox-row">
-        <input type="checkbox" id="autoStart" />
-        <span>登录 Linux 时自动启动</span>
-      </label>
-      <small>启用后应用会在桌面会话登录时启动，并常驻系统托盘。</small>
-    </section>
-
-    <div class="actions">
-      <button id="save">保存</button>
-      <button id="reset" class="ghost">恢复默认</button>
-    </div>
-    <div id="status"></div>
+    <aside>
+      <div class="brand"><span class="app-mark" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h12M9 3v3m4 0c-1 5-4.5 9-9 11m2-8c1.4 3 3.4 5.3 6 7m1.5 5 4.2-11 4.3 11m-6.9-3h5.2"/></svg></span>截图翻译</div>
+      <nav aria-label="设置分类">
+        <button aria-controls="general" aria-current="page"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h12M9 3v3m4 0c-1 5-4.5 9-9 11m2-8c1.4 3 3.4 5.3 6 7m1.5 5 4.2-11 4.3 11m-6.9-3h5.2"/></svg><span>翻译偏好</span></button>
+        <button aria-controls="services"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 2v3m6-3v3M9 19v3m6-3v3M2 9h3m-3 6h3m14-6h3m-3 6h3"/></svg><span>模型与服务</span></button>
+        <button aria-controls="shortcuts"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 9h.5m3 0h.5m3 0h.5m3 0h.5M6 12h.5m3 0h.5m3 0h.5m3 0h.5M8 15h8"/></svg><span>快捷键</span></button>
+      </nav>
+    </aside>
+    <main>
+      <div class="page" id="general">
+        <h1>翻译偏好</h1>
+        <section>
+          <h2>默认语言</h2>
+          <div class="group">
+            <div class="row"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg><label for="curSource">源语言</label><select id="curSource"></select></div>
+            <div class="row"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h12M9 3v3m4 0c-1 5-4.5 9-9 11m2-8c1.4 3 3.4 5.3 6 7m1.5 5 4.2-11 4.3 11m-6.9-3h5.2"/></svg><label for="curTarget">目标语言</label><select id="curTarget"></select></div>
+          </div>
+        </section>
+        <section>
+          <h2>数学解析</h2>
+          <div class="group"><div class="row"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5H6l7 7-7 7h12"/></svg>
+            <label for="mathFormat">默认输出格式<small>也可在结果窗口切换格式。</small></label>
+            <select id="mathFormat"><option value="md">Markdown</option><option value="tex">LaTeX</option></select>
+          </div></div>
+        </section>
+        <section id="windowsAutoStartSection" hidden>
+          <h2>启动</h2>
+          <div class="group"><div class="row"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9m-4.6-6.4a8 8 0 1 0 9.2 0"/></svg>
+            <label for="launchAtLogin">登录时自动启动<small>登录 Windows 后在后台运行截图翻译。</small></label>
+            <input class="switch" type="checkbox" role="switch" id="launchAtLogin" />
+          </div></div>
+        </section>
+        <section id="autoStartSection" hidden>
+          <h2>启动</h2>
+          <div class="group"><div class="row"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9m-4.6-6.4a8 8 0 1 0 9.2 0"/></svg>
+            <label for="autoStart">登录时自动启动<small>登录 Linux 后在后台运行截图翻译。</small></label>
+            <input class="switch" type="checkbox" role="switch" id="autoStart" />
+          </div></div>
+        </section>
+      </div>
+      <div class="page" id="services" hidden>
+        <h1>模型与服务</h1>
+        <section>
+          <h2>OpenCode Go</h2>
+          <div class="group field">
+            <label for="apiKey"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="9" r="5"/><path d="m12 12 8 8h2v-4h-3v-3h-3M7 8h.1"/></svg>API 密钥</label>
+            <input type="password" id="apiKey" placeholder="粘贴你的 Go API Key" aria-describedby="keyHelp" />
+            <small id="keyHelp">密钥保存在本机。<a id="goLink" href="#">获取 API Key ↗</a></small>
+          </div>
+        </section>
+        <section>
+          <h2>模型配置</h2>
+          <div class="group">
+            <div class="field"><label for="model">视觉模型</label><select id="model"></select></div>
+            <div class="field"><label for="endpoint">服务端点</label><input type="text" id="endpoint" placeholder="留空时按模型协议自动选择" /></div>
+          </div>
+        </section>
+      </div>
+      <div class="page" id="shortcuts" hidden>
+        <h1>快捷键</h1>
+        <section>
+          <h2>全局快捷键</h2>
+          <p>输入组合键（例如 Alt+S 或 Ctrl+Shift+T），留空可禁用。保存后生效。</p>
+          <div class="group bindings">
+            <div class="row"><label for="scScreenshot">截图翻译</label><input type="text" id="scScreenshot" spellcheck="false" /></div>
+            <div class="row"><label for="scSelection">划词翻译（Windows）</label><input type="text" id="scSelection" spellcheck="false" /></div>
+            <div class="row"><label for="scMath">数学解析</label><input type="text" id="scMath" spellcheck="false" /></div>
+            <div class="row"><label for="scQuick">切换快速 / 思考模式</label><input type="text" id="scQuick" spellcheck="false" /></div>
+            <div class="row"><label for="scModel">切换模型</label><input type="text" id="scModel" spellcheck="false" /></div>
+            <div class="row"><label for="scSource">切换源语言</label><input type="text" id="scSource" spellcheck="false" /></div>
+            <div class="row"><label for="scTarget">切换目标语言</label><input type="text" id="scTarget" spellcheck="false" /></div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer><span id="status" role="status"></span><button id="reset">恢复默认</button><button class="primary" id="save">保存设置</button></footer>
     <script type="module" src="settings.js"></script>
   </body>
 </html>

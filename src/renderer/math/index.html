@@ -6,26 +6,28 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
     />
+    <link rel="stylesheet" href="../theme.css" />
+    <link rel="stylesheet" href="../result.css" />
     <link rel="stylesheet" href="math.css" />
   </head>
   <body>
-    <div id="header">
-      <span id="title">数学解析结果</span>
-      <span id="close" title="关闭 (Esc)">×</span>
-    </div>
-    <div id="loading">解析中…</div>
+    <header id="header">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5H6l7 7-7 7h12"/></svg><span id="title">数学解析结果</span>
+      <button id="close" title="关闭 (Esc)" aria-label="关闭"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    </header>
+    <div id="loading" role="status">正在解析数学内容…</div>
     <div id="content" hidden>
       <div id="toolbar">
-        <div id="tabs">
-          <button class="tab active" data-format="md">Markdown</button>
-          <button class="tab" data-format="tex">LaTeX</button>
+        <div id="tabs" role="group" aria-label="输出格式">
+          <button class="tab" aria-pressed="true" data-format="md">Markdown</button>
+          <button class="tab" aria-pressed="false" data-format="tex">LaTeX</button>
         </div>
         <div id="actions">
           <button class="act" id="copyBtn">复制</button>
           <button class="act" id="saveBtn">保存</button>
         </div>
       </div>
-      <div id="error" hidden></div>
+      <div id="error" role="alert" hidden></div>
       <pre id="code"></pre>
     </div>
     <script type="module" src="math.js"></script>
